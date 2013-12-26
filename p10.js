@@ -59,6 +59,26 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 	var t = this;
 	t.table = document.createElement("table");
 	t.table.style.borderCollapse = "collapse";
+	var addCheck = function(p,r) {
+		var chk = document.createElement("input");
+		var lbl = document.createTextNode("");
+		chk.type = "checkbox";
+		t.pcs[p][r] = chk;
+		t.pls[p][r] = lbl;
+		t.scores[p][r].element.appendChild(chk);
+		t.scores[p][r].element.appendChild(lbl);
+		chk.addEventListener("change",function(){
+			var phase = 1;
+			for(var i in t.pcs[p]) {
+				if (t.pcs[p][i].checked) {
+					t.pls[p][i].data = phase++;
+				} else {
+					t.pls[p][i].data = "";
+				}
+			}
+			t.lls[p].data = phase;
+		});
+	};
 	{
 		var tr = document.createElement("tr");
 		var tr2 = document.createElement("tr");
@@ -67,6 +87,9 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 		t.players = [];
 		t.scores = [];
 		t.sums = [];
+		t.pcs = [];
+		t.pls = [];
+		t.lls = [];
 		t.round = 1;
 		tr.style.borderBottom = "2px solid black";
 		for(var i = 0; i < players; i++) {
@@ -78,14 +101,20 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 				});
 				edit.edit.value = "Player " + (i + 1);
 				tr.appendChild(edit.element);
+				var lbl = document.createTextNode("1");
+				t.lls[i] = lbl;
+				edit.element.appendChild(lbl);
 			})(i);
 			t.scores[i] = [];
 			t.sums[i] = [];
+			t.pcs[i] = [];
+			t.pls[i] = [];
 			var score = new NumberCell();
 			t.scores[i].push(score);
 			t.sums[i].push(score);
 			tr2.appendChild(createTextCell("", true));
 			tr2.appendChild(t.scores[i][0].element);
+			addCheck(i,0);
 		}
 		t.table.appendChild(tr);
 		t.table.appendChild(tr2);
@@ -119,6 +148,7 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 				t.sums[i][r] = ns;
 				tr2.appendChild(createTextCell("", true));
 				tr2.appendChild(ns.element);
+				addCheck(i,r);
 			}
 			t.table.insertBefore(tr, br);
 			t.table.insertBefore(tr2,br);
@@ -207,4 +237,6 @@ SumCell = function(source1, source2) {
 
 SumCell.prototype.addChangeListener = function(callback) {
 	this.changeListeners.push(callback);
-}
+}
+
+
