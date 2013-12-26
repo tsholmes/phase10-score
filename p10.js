@@ -14,9 +14,15 @@ function validateNum(str, zero) {
 	return NaN;
 }
 
-function createTextCell(str) {
+function createTextCell(str,leftBorder,bottomBorder) {
 	var td = document.createElement("td");
 	td.appendChild(document.createTextNode(str));
+	if (leftBorder){
+		td.style.borderLeft = "2px solid black";
+	}
+	if (bottomBorder){
+		td.style.borderBottom = "2px solid black";
+	}
 	return td;
 }
 
@@ -52,6 +58,7 @@ Scorekeep.prototype.getPlayerCount = function(callback) {
 Scorekeep.prototype.initializeScoreboard = function(players) {
 	var t = this;
 	t.table = document.createElement("table");
+	t.table.style.borderCollapse = "collapse";
 	{
 		var tr = document.createElement("tr");
 		var tr2 = document.createElement("tr");
@@ -61,13 +68,15 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 		t.scores = [];
 		t.sums = [];
 		t.round = 1;
+		tr.style.borderBottom = "2px solid black";
 		for(var i = 0; i < players; i++) {
-			tr.appendChild(createTextCell(" "));
+			tr.appendChild(createTextCell(" ",true));
 			(function(i){
 				t.players[i] = "";
 				var edit = new EditCell(function(name){
 					t.players[i] = name;
 				});
+				edit.edit.value = "Player " + (i + 1);
 				tr.appendChild(edit.element);
 			})(i);
 			t.scores[i] = [];
@@ -75,11 +84,13 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 			var score = new NumberCell();
 			t.scores[i].push(score);
 			t.sums[i].push(score);
-			tr2.appendChild(createTextCell(""));
+			tr2.appendChild(createTextCell("", true));
 			tr2.appendChild(t.scores[i][0].element);
 		}
 		t.table.appendChild(tr);
 		t.table.appendChild(tr2);
+		t.sums[0][0].edit.style.fontWeight = "bold";
+		t.sums[0][0].element.title = "Dealer";
 	}
 	{
 		var br = document.createElement("tr");
@@ -95,21 +106,25 @@ Scorekeep.prototype.initializeScoreboard = function(players) {
 			var tr = document.createElement("tr");
 			var tr2 = document.createElement("tr");
 
-			tr.appendChild(createTextCell("Round " + t.round));
+			tr.appendChild(createTextCell("Round " + t.round, false, true));
 			tr2.appendChild(createTextCell(""));
 
 			for (var i = 0; i < players; i++) {
 				var nc = new NumberCell();
+				nc.element.style.borderBottom = "2px solid black";
 				t.scores[i][r] = nc;
-				tr.appendChild(createTextCell("+"));
+				tr.appendChild(createTextCell("+", true, true));
 				tr.appendChild(nc.element);
 				var ns = new SumCell(t.scores[i][r], t.sums[i][r-1]);
 				t.sums[i][r] = ns;
-				tr2.appendChild(createTextCell(""));
+				tr2.appendChild(createTextCell("", true));
 				tr2.appendChild(ns.element);
 			}
 			t.table.insertBefore(tr, br);
 			t.table.insertBefore(tr2,br);
+
+			t.sums[r%players][r].element.style.fontWeight = "bold";
+			t.sums[r%players][r].element.title = "Dealer";
 		});
 	}
 	t.element.appendChild(t.table);
@@ -137,6 +152,7 @@ NumberCell = function() {
 	var t = this;
 	t.element = document.createElement("td");
 	t.edit = document.createElement("input");
+	t.edit.value = "0";
 	t.element.appendChild(t.edit);
 	t.changeListeners = [];
 	t.value = 0;
